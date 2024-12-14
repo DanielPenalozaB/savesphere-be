@@ -1,0 +1,37 @@
+services:
+  app:
+    image: node:18-alpine
+    container_name: nestjs-app
+    working_dir: /usr/src/app
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    command: nest start --watch
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - DATABASE_USER=savesphere
+      - DATABASE_PASSWORD=savespheresecret
+      - DATABASE_NAME=savespheredb
+    depends_on:
+      - db
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+  db:
+    image: postgres:14-alpine
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: savesphere
+      POSTGRES_PASSWORD: savespheresecret
+      POSTGRES_DB: savespheredb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
