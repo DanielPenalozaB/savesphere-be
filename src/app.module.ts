@@ -18,9 +18,11 @@ import { TransactionController } from './transaction/transaction.controller';
 import { TransactionModule } from './transaction/transaction.module';
 import { UserController } from './user/user.controller';
 import { UserModule } from './user/user.module';
+import { PrismaService } from './prisma/prisma.service';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
-  imports: [UserModule, AccountModule, TransactionModule, SubtransactionModule, CategoryModule, TagModule, CreditModule, ProductModule, AuthModule],
+  imports: [UserModule, AccountModule, TransactionModule, SubtransactionModule, CategoryModule, TagModule, CreditModule, ProductModule, AuthModule, PrismaModule],
   controllers: [
     AppController,
     UserController,
@@ -32,6 +34,6 @@ import { UserModule } from './user/user.module';
     CreditController,
     ProductController
   ],
-  providers: [AppService],
+  providers: [AppService, PrismaService],
 })
 export class AppModule {}

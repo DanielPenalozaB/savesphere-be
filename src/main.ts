@@ -18,12 +18,14 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle("SaveSphere")
-    .setDescription("SaveSphere API description")
+    .setDescription("SaveSphere API project")
     .setVersion("1.0")
+    .addTag("SaveSphere")
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup("docs", app, document);
+  SwaggerModule.setup('api', app, document);
 
-  await app.listen(parseInt(process.env.PORT) || 3001);
+  await app.listen(parseInt(process.env.PORT) || 4000);
 }
 bootstrap();

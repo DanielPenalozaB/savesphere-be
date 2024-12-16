@@ -1,0 +1,165 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// prisma/schema.prisma
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  password     String
+  name         String
+  accounts     Account[]
+  transactions Transaction[]
+  credits      Credit[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@map("users")
+}
+
+// Account
+
+model Account {
+  id           String        @id @default(uuid())
+  name         String
+  balance      Float
+  type         AccountType
+  userId       String
+  user         User          @relation(fields: [userId], references: [id])
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@map("accounts")
+}
+
+enum AccountType {
+  CHECKING
+  SAVINGS
+  CREDIT_CARD
+  CASH
+  INVESTMENT
+}
+
+// Category
+
+model Category {
+  id           String          @id @default(uuid())
+  name         String
+  type         TransactionType
+  transactions Transaction[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@map("categories")
+}
+
+// Credit
+
+model Credit {
+  id           String        @id @default(uuid())
+  name         String
+  amount       Float
+  interestRate Float
+  startDate    DateTime
+  endDate      DateTime
+  status       CreditStatus
+  userId       String
+  user         User          @relation(fields: [userId], references: [id])
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@map("credits")
+}
+
+enum CreditStatus {
+  ACTIVE
+  PAID
+  DEFAULTED
+}
+
+// Product
+
+model Product {
+  id              String           @id @default(uuid())
+  name            String
+  price           Float
+  subtransactions Subtransaction[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@map("products")
+}
+
+// Tag
+
+model Tag {
+  id           String        @id @default(uuid())
+  name         String
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@map("tags")
+}
+
+// Transaction
+
+model Transaction {
+  id              String           @id @default(uuid())
+  amount          Float
+  date            DateTime
+  description     String?
+  type            TransactionType
+  accountId       String
+  account         Account          @relation(fields: [accountId], references: [id])
+  categoryId      String
+  category        Category         @relation(fields: [categoryId], references: [id])
+  creditId        String?
+  credit          Credit?          @relation(fields: [creditId], references: [id])
+  userId          String
+  user            User             @relation(fields: [userId], references: [id])
+  tags            Tag[]
+  subtransactions Subtransaction[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@map("transactions")
+}
+
+// Subtransaction
+
+model Subtransaction {
+  id            String      @id @default(uuid())
+  quantity      Int
+  price         Float
+  productId     String
+  product       Product     @relation(fields: [productId], references: [id])
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@map("subtransactions")
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+}
