@@ -1,46 +1,73 @@
-import { Controller, Get, Post, Body, Put, Param, Delete } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+	Controller,
+	Get,
+	Post,
+	Body,
+	Patch,
+	Param,
+	Delete,
+	HttpCode,
+	HttpStatus,
+	Query,
+} from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto, UpdateUserDto } from './dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { PageOptionsDto } from 'src/common/dto/page-options.dto';
+import { PageDto } from 'src/common/dto/page.dto';
+import { User } from '@prisma/client';
+import { UserResponseDto } from './dto/user-response.dto';
 
 @ApiTags('users')
 @Controller('users')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+	constructor(private readonly userService: UserService) {}
 
-  @Post()
-  @ApiOperation({ summary: 'Create user' })
-  @ApiResponse({ status: 201, description: 'User created successfully.' })
-	@ApiResponse({ status: 400, description: 'Bad request.' })
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
-  }
+	@Post()
+	@ApiOperation({ summary: 'Create new user' })
+	@ApiResponse({ status: 201, description: 'User created successfully' })
+	@ApiResponse({ status: 409, description: 'Email already registered' })
+	create(@Body() createUserDto: CreateUserDto) {
+		return this.userService.create(createUserDto);
+	}
 
-  @Get()
-  @ApiOperation({ summary: 'Get all users' })
-  @ApiResponse({ status: 200, description: 'Return all users.' })
-  findAll() {
-    return this.userService.findAll();
-  }
+	@Get()
+	@ApiOperation({ summary: 'Get all users with pagination' })
+	@ApiResponse({
+		status: 200,
+		description: 'List of users retrieved successfully',
+		type: () => PageDto<UserResponseDto>,
+	})
+	findAll(
+		@Query() pageOptions: PageOptionsDto,
+	): Promise<PageDto<UserResponseDto>> {
+		return this.userService.findAll(pageOptions);
+	}
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get user by id' })
-  @ApiResponse({ status: 200, description: 'Return user by id.' })
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(id);
-  }
+	@Get(':id')
+	@ApiOperation({ summary: 'Get user by id' })
+	@ApiResponse({ status: 200, description: 'User retrieved successfully' })
+	@ApiResponse({ status: 404, description: 'User not found' })
+	findOne(@Param('id') id: string) {
+		return this.userService.findOne(id);
+	}
 
-  @Put(':id')
-  @ApiOperation({ summary: 'Update user' })
-  @ApiResponse({ status: 200, description: 'User updated successfully.' })
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(id, updateUserDto);
-  }
+	@Patch(':id')
+	@ApiOperation({ summary: 'Update user' })
+	@ApiResponse({ status: 200, description: 'User updated successfully' })
+	@ApiResponse({ status: 404, description: 'User not found' })
+	@ApiResponse({ status: 409, description: 'Email already registered' })
+	update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+		return this.userService.update(id, updateUserDto);
+	}
 
-  @Delete(':id')
-  @ApiOperation({ summary: 'Delete user' })
-  @ApiResponse({ status: 200, description: 'User deleted successfully.' })
-  remove(@Param('id') id: string) {
-    return this.userService.remove(id);
-  }
+	@Delete(':id')
+	@HttpCode(HttpStatus.NO_CONTENT)
+	@ApiOperation({ summary: 'Delete user' })
+	@ApiResponse({ status: 204, description: 'User deleted successfully' })
+	@ApiResponse({ status: 404, description: 'User not found' })
+	remove(@Param('id') id: string) {
+		return this.userService.remove(id);
+	}
 }

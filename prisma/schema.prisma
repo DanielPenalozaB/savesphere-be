@@ -18,17 +18,58 @@ datasource db {
 // User
 
 model User {
-  id           String        @id @default(uuid())
-  email        String        @unique
-  password     String
-  name         String
-  accounts     Account[]
-  transactions Transaction[]
-  credits      Credit[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id              String            @id @default(uuid())
+  email           String            @unique
+  password        String
+  name            String
+  accounts        Account[]
+  transactions    Transaction[]
+  credits         Credit[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  role            Role?             @relation(fields: [roleId], references: [id])
+  roleId          String?
+  userSettings    UserSettings?
+  budget          Budget[]
+  savingsGoal     SavingsGoal[]
+  passwordHistory PasswordHistory[]
 
   @@map("users")
+}
+
+model Role {
+  id        String   @id @default(uuid())
+  name      String
+  users     User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("roles")
+}
+
+model UserSettings {
+  id                   String   @id @default(uuid())
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id])
+  defaultCurrencyId    String // Changed from defaultCurrencyCode to defaultCurrencyId
+  defaultCurrency      Currency @relation(fields: [defaultCurrencyId], references: [id])
+  notificationsEnabled Boolean  @default(true)
+  theme                String   @default("light")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@map("user_settings")
+}
+
+model PasswordHistory {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  password  String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("password_history")
 }
 
 // Account
@@ -37,6 +78,8 @@ model Account {
   id           String        @id @default(uuid())
   name         String
   balance      Float
+  currencyId   String // Changed from currencyCode to currencyId
+  currency     Currency      @relation(fields: [currencyId], references: [id])
   type         AccountType
   userId       String
   user         User          @relation(fields: [userId], references: [id])
@@ -58,12 +101,14 @@ enum AccountType {
 // Category
 
 model Category {
-  id           String          @id @default(uuid())
-  name         String
-  type         TransactionType
-  transactions Transaction[]
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
+  id             String           @id @default(uuid())
+  name           String
+  slug           String           @unique
+  type           TransactionType
+  transactions   Transaction[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  budgetCategory BudgetCategory[]
 
   @@map("categories")
 }
@@ -110,7 +155,7 @@ model Product {
 
 model Tag {
   id           String        @id @default(uuid())
-  name         String
+  name         String        @unique
   transactions Transaction[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
@@ -123,6 +168,9 @@ model Tag {
 model Transaction {
   id              String           @id @default(uuid())
   amount          Float
+  currencyId      String // Changed from currencyCode to currencyId
+  currency        Currency         @relation(fields: [currencyId], references: [id])
+  convertedAmount Float?
   date            DateTime
   description     String?
   type            TransactionType
@@ -162,4 +210,86 @@ enum TransactionType {
   INCOME
   EXPENSE
   TRANSFER
+}
+
+// Currency
+
+model Currency {
+  id            String         @id @default(uuid())
+  code          String         @unique // ISO 4217 code (e.g., USD, EUR)
+  name          String // Full name (e.g., US Dollar)
+  symbol        String // Currency symbol (e.g., $)
+  exchangeRates ExchangeRate[] // Rates where this is the base currency
+  accounts      Account[] // Accounts using this currency
+  transactions  Transaction[] // Transactions in this currency
+  userSettings  UserSettings[] // Users who have this as their default currency
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@map("currencies")
+}
+
+model ExchangeRate {
+  id             String   @id @default(uuid())
+  baseCurrencyId String
+  baseCurrency   Currency @relation(fields: [baseCurrencyId], references: [id])
+  targetCurrency String // ISO 4217 code of target currency
+  rate           Float // Exchange rate
+  date           DateTime // When this rate was recorded
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([baseCurrencyId, targetCurrency, date])
+  @@map("exchange_rates")
+}
+
+// Budget
+
+model Budget {
+  id         String           @id @default(uuid())
+  userId     String
+  user       User             @relation(fields: [userId], references: [id])
+  month      DateTime
+  amount     Float
+  categories BudgetCategory[]
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@map("budgets")
+}
+
+model BudgetCategory {
+  id         String   @id @default(uuid())
+  budgetId   String
+  budget     Budget   @relation(fields: [budgetId], references: [id])
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+  amount     Float
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("budget_categories")
+}
+
+// Savings Goal
+
+model SavingsGoal {
+  id            String     @id @default(uuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id])
+  name          String
+  targetAmount  Float
+  currentAmount Float
+  deadline      DateTime
+  status        GoalStatus
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@map("savings_goals")
+}
+
+enum GoalStatus {
+  IN_PROGRESS
+  ACHIEVED
+  FAILED
 }
