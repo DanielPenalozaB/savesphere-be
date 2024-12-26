@@ -5,13 +5,12 @@ import {
 	NotFoundException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { PageMetaDto } from 'src/common/dto/page-meta.dto';
+import { PageOptionsDto } from 'src/common/dto/page-options.dto';
+import { PageDto } from 'src/common/dto/page.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { PageOptionsDto } from 'src/common/dto/page-options.dto';
-import { PageDto } from 'src/common/dto/page.dto';
-import { User } from '@prisma/client';
-import { PageMetaDto } from 'src/common/dto/page-meta.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 
 @Injectable()

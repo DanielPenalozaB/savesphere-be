@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { Seeder } from './types';
+import * as bcrypt from 'bcrypt';
 
 export class UserSeeder implements Seeder {
 	async run(prisma: PrismaClient): Promise<void> {
@@ -22,10 +23,12 @@ export class UserSeeder implements Seeder {
 		];
 
 		for (const user of users) {
+			const hashedPassword = await bcrypt.hash(user.password, 10);
+
 			await prisma.user.upsert({
 				where: { id: user.name },
 				update: {},
-				create: user,
+				create: { ...user, password: hashedPassword },
 			});
 		}
 
