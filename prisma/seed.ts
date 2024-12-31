@@ -1,11 +1,11 @@
 import { PrismaClient } from '@prisma/client';
 import {
-  RoleSeeder,
-  UserSeeder,
-  CategorySeeder,
-  TagSeeder,
-  CurrencySeeder,
-  ExchangeRateSeeder,
+	RoleSeeder,
+	UserSeeder,
+	CategorySeeder,
+	TagSeeder,
+	CurrencySeeder,
+	ExchangeRateSeeder,
 } from './seeders';
 
 const prisma = new PrismaClient();
@@ -13,7 +13,6 @@ const prisma = new PrismaClient();
 async function main() {
 	console.log('Starting seed...');
 
-	// Run seeders in order (important for dependencies)
 	await new RoleSeeder().run(prisma);
 	await new UserSeeder().run(prisma);
 	await new CategorySeeder().run(prisma);

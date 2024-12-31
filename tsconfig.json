@@ -18,6 +18,6 @@
 		"forceConsistentCasingInFileNames": false,
 		"noFallthroughCasesInSwitch": false,
 		"typeRoots": ["./node_modules/@types", "./node_modules/@prisma/client"],
-		"types": ["node"]
+		"types": ["node", "jest"],
 	}
 }

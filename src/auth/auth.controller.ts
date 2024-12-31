@@ -1,9 +1,10 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { Request } from 'express';
 import { AuthService } from './auth.service';
-import { RegisterDto } from './dto/register.dto';
-import { LoginDto } from './dto/login.dto';
-import { RefreshTokenGuard } from './guard/refresh-token.guard';
 import { Public } from './decorator/public.decorator';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
+import { RefreshTokenGuard } from './guard/refresh-token.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -24,7 +25,13 @@ export class AuthController {
 	@Public()
 	@UseGuards(RefreshTokenGuard)
 	@Post('refresh')
-	refreshToken(@Body('refreshToken') refreshToken: string) {
-		return this.authService.refreshToken(refreshToken);
+	refreshTokens(@Req() req: Request) {
+		if (!req.user) {
+			throw new Error('No user from request');
+		}
+
+		const userId = req.user['sub'];
+		const refreshToken = req.user['refreshToken'];
+		return this.authService.refreshTokens(userId, refreshToken);
 	}
 }

@@ -3,14 +3,6 @@ import { Seeder } from './types';
 
 export class ExchangeRateSeeder implements Seeder {
 	async run(prisma: PrismaClient): Promise<void> {
-		const existingRates = await prisma.exchangeRate.count();
-
-		if (existingRates > 0) {
-			console.log('⚡ Exchange rates already seeded, skipping...');
-			return;
-		}
-
-		// Get USD currency
 		const usdCurrency = await prisma.currency.findUnique({
 			where: { code: 'USD' },
 		});
@@ -30,20 +22,36 @@ export class ExchangeRateSeeder implements Seeder {
 		];
 
 		const today = new Date();
+		let createdCount = 0;
 
 		await prisma.$transaction(async (tx) => {
 			for (const rate of rates) {
-				await tx.exchangeRate.create({
-					data: {
+				const existingRate = await tx.exchangeRate.findFirst({
+					where: {
 						baseCurrencyId: usdCurrency.id,
 						targetCurrency: rate.targetCurrency,
-						rate: rate.rate,
 						date: today,
 					},
 				});
+
+				if (!existingRate) {
+					await tx.exchangeRate.create({
+						data: {
+							baseCurrencyId: usdCurrency.id,
+							targetCurrency: rate.targetCurrency,
+							rate: rate.rate,
+							date: today,
+						},
+					});
+					createdCount++;
+				}
 			}
 		});
 
-		console.log('✓ Seeded exchange rates');
+		if (createdCount > 0) {
+			console.log(`✓ Created ${createdCount} new exchange rate(s)`);
+		} else {
+			console.log('⚡ No new exchange rates needed to be created');
+		}
 	}
 }

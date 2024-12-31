@@ -3,13 +3,6 @@ import { Seeder } from './types';
 
 export class TagSeeder implements Seeder {
 	async run(prisma: PrismaClient): Promise<void> {
-		const existingTags = await prisma.tag.count();
-
-		if (existingTags > 0) {
-			console.log('⚡ Tags already seeded, skipping...');
-			return;
-		}
-
 		const tags = [
 			{ name: 'Important' },
 			{ name: 'Personal' },
@@ -18,14 +11,27 @@ export class TagSeeder implements Seeder {
 			{ name: 'Vacation' },
 		];
 
-		for (const tag of tags) {
-			await prisma.tag.upsert({
-				where: { name: tag.name },
-				update: {},
-				create: tag,
-			});
-		}
+		let createdCount = 0;
 
-		console.log('✓ Seeded tags');
+		await prisma.$transaction(async (tx) => {
+			for (const tag of tags) {
+				const existingTag = await tx.tag.findUnique({
+					where: { name: tag.name },
+				});
+
+				if (!existingTag) {
+					await tx.tag.create({
+						data: tag,
+					});
+					createdCount++;
+				}
+			}
+		});
+
+		if (createdCount > 0) {
+			console.log(`✓ Created ${createdCount} new tag(s)`);
+		} else {
+			console.log('⚡ No new tags needed to be created');
+		}
 	}
 }

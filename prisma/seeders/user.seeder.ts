@@ -4,34 +4,51 @@ import * as bcrypt from 'bcrypt';
 
 export class UserSeeder implements Seeder {
 	async run(prisma: PrismaClient): Promise<void> {
-		const existingUsers = await prisma.user.count();
+		let createdCount = 0;
 
-		if (existingUsers > 0) {
-			console.log('⚡ Users already seeded, skipping...');
-			return;
+		await prisma.$transaction(async (tx) => {
+			let role = await tx.role.findFirst({ where: { name: 'ADMIN' } });
+
+			if (!role) {
+				role = await tx.role.create({
+					data: {
+						name: 'ADMIN',
+					},
+				});
+				console.log('✓ Created missing ADMIN role');
+			}
+
+			const users = [
+				{
+					name: 'SaveSphere',
+					email: 'savesphere@app.com',
+					password: '8XAY=PQCT8ms',
+					roleId: role.id,
+				},
+			];
+
+			for (const user of users) {
+				const existingUser = await tx.user.findUnique({
+					where: { email: user.email },
+				});
+
+				if (!existingUser) {
+					const hashedPassword = await bcrypt.hash(user.password, 10);
+					await tx.user.create({
+						data: {
+							...user,
+							password: hashedPassword,
+						},
+					});
+					createdCount++;
+				}
+			}
+		});
+
+		if (createdCount > 0) {
+			console.log(`✓ Created ${createdCount} new user(s)`);
+		} else {
+			console.log('⚡ No new users needed to be created');
 		}
-
-		const role = await prisma.role.findFirst({ where: { name: 'ADMIN' } });
-
-		const users = [
-			{
-				name: 'SaveSphere',
-				email: 'savesphere@app.com',
-				password: '8XAY=PQCT8ms',
-				roleId: role.id,
-			},
-		];
-
-		for (const user of users) {
-			const hashedPassword = await bcrypt.hash(user.password, 10);
-
-			await prisma.user.upsert({
-				where: { id: user.name },
-				update: {},
-				create: { ...user, password: hashedPassword },
-			});
-		}
-
-		console.log('✓ Seeded users');
 	}
 }

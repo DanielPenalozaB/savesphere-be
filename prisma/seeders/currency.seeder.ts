@@ -3,13 +3,6 @@ import { Seeder } from './types';
 
 export class CurrencySeeder implements Seeder {
 	async run(prisma: PrismaClient): Promise<void> {
-		const existingCurrencies = await prisma.currency.count();
-
-		if (existingCurrencies > 0) {
-			console.log('⚡ Currencies already seeded, skipping...');
-			return;
-		}
-
 		const currencies = [
 			{ code: 'USD', name: 'US Dollar', symbol: '$' },
 			{ code: 'EUR', name: 'Euro', symbol: '€' },
@@ -18,14 +11,27 @@ export class CurrencySeeder implements Seeder {
 			{ code: 'COP', name: 'Colombian Peso', symbol: '$' },
 		];
 
-		for (const currency of currencies) {
-			await prisma.currency.upsert({
-				where: { code: currency.code },
-				update: {},
-				create: currency,
-			});
-		}
+		let createdCount = 0;
 
-		console.log('✓ Seeded currencies');
+		await prisma.$transaction(async (tx) => {
+			for (const currency of currencies) {
+				const existingCurrency = await tx.currency.findUnique({
+					where: { code: currency.code },
+				});
+
+				if (!existingCurrency) {
+					await tx.currency.create({
+						data: currency,
+					});
+					createdCount++;
+				}
+			}
+		});
+
+		if (createdCount > 0) {
+			console.log(`✓ Created ${createdCount} new currency(ies)`);
+		} else {
+			console.log('⚡ No new currencies needed to be created');
+		}
 	}
 }
