@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+
 import { PageMetaParameters } from '../interface/page-meta.interface';
 
 export class PageMetaDto {
@@ -21,11 +22,11 @@ export class PageMetaDto {
 	readonly hasNextPage: boolean;
 
 	constructor({ pageOptions, itemCount }: PageMetaParameters) {
-		this.page = pageOptions.page;
-		this.take = pageOptions.take;
-		this.itemCount = itemCount;
-		this.pageCount = Math.ceil(this.itemCount / this.take);
-		this.hasPreviousPage = this.page > 1;
-		this.hasNextPage = this.page < this.pageCount;
+	  this.page = pageOptions.page;
+	  this.take = pageOptions.take;
+	  this.itemCount = itemCount;
+	  this.pageCount = Math.ceil(this.itemCount / this.take);
+	  this.hasPreviousPage = this.page > 1;
+	  this.hasNextPage = this.page < this.pageCount;
 	}
 }

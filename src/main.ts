@@ -1,12 +1,13 @@
-import { ValidationPipe } from "@nestjs/common";
-import { NestFactory } from "@nestjs/core";
-import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
-import { AppModule } from "./app.module";
+import { ValidationPipe } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+
+import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.setGlobalPrefix("api");
+  app.setGlobalPrefix('api');
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -17,10 +18,10 @@ async function bootstrap() {
   );
 
   const config = new DocumentBuilder()
-    .setTitle("SaveSphere")
-    .setDescription("SaveSphere API project")
-    .setVersion("1.0")
-    .addTag("SaveSphere")
+    .setTitle('SaveSphere')
+    .setDescription('SaveSphere API project')
+    .setVersion('1.0')
+    .addTag('SaveSphere')
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);

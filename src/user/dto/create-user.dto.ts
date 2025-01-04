@@ -1,10 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
-	IsEmail,
-	IsString,
-	IsOptional,
-	MinLength,
-	IsStrongPassword,
+  IsEmail,
+  IsString,
+  IsOptional,
+  IsStrongPassword,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -18,8 +17,8 @@ export class CreateUserDto {
 	email: string;
 
 	@ApiProperty({
-		example: 'StrongP@ss123',
-		description:
+	  example: 'StrongP@ss123',
+	  description:
 			'Password must be at least 8 characters long and contain uppercase, lowercase, numbers, and special characters (!@#$%^&*(),.?":{}[]|<>)',
 	})
 	@IsString()

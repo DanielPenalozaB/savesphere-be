@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+
 import { AccountController } from './account/account.controller';
 import { AccountModule } from './account/account.module';
 import { AppController } from './app.controller';
@@ -8,6 +9,8 @@ import { CategoryController } from './category/category.controller';
 import { CategoryModule } from './category/category.module';
 import { CreditController } from './credit/credit.controller';
 import { CreditModule } from './credit/credit.module';
+import { PrismaModule } from './prisma/prisma.module';
+import { PrismaService } from './prisma/prisma.service';
 import { ProductController } from './product/product.controller';
 import { ProductModule } from './product/product.module';
 import { SubtransactionController } from './subtransaction/subtransaction.controller';
@@ -18,11 +21,20 @@ import { TransactionController } from './transaction/transaction.controller';
 import { TransactionModule } from './transaction/transaction.module';
 import { UserController } from './user/user.controller';
 import { UserModule } from './user/user.module';
-import { PrismaService } from './prisma/prisma.service';
-import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
-  imports: [UserModule, AccountModule, TransactionModule, SubtransactionModule, CategoryModule, TagModule, CreditModule, ProductModule, AuthModule, PrismaModule],
+  imports: [
+    UserModule,
+    AccountModule,
+    TransactionModule,
+    SubtransactionModule,
+    CategoryModule,
+    TagModule,
+    CreditModule,
+    ProductModule,
+    AuthModule,
+    PrismaModule,
+  ],
   controllers: [
     AppController,
     UserController,
@@ -32,7 +44,7 @@ import { PrismaModule } from './prisma/prisma.module';
     CategoryController,
     TagController,
     CreditController,
-    ProductController
+    ProductController,
   ],
   providers: [AppService, PrismaService],
 })
